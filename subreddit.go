@@ -13,6 +13,7 @@ type Post struct {
 	Downvotes int
 	Comments  []*Comment
 	Subreddit *Subreddit
+	Type      string
 }
 
 type Subreddit struct {

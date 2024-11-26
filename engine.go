@@ -3,11 +3,10 @@ package main
 import "fmt"
 
 type Engine struct {
-	Accounts   []*Account
-	Subreddits []*Subreddit
+	Accounts []*Account
 }
 
-func (e *Engine) CreateNewAccount(username, password string) {
+func (e *Engine) CreateNewAccount(username, password string) *Account {
 	newAcc := &Account{
 		Username:   username,
 		Password:   password,
@@ -17,17 +16,23 @@ func (e *Engine) CreateNewAccount(username, password string) {
 
 	e.Accounts = append(e.Accounts, newAcc)
 
-	fmt.Println("Account created: ", username)
+	fmt.Println("Account created: ", username+"\n")
+
+	return newAcc
 }
 
-func (e *Engine) CreateNewSubreddit(by *Account, name, description string) {
-	newSub := &Subreddit{
-		Name:        name,
-		Description: description,
-		CreatedBy:   by,
+func (e *Engine) GetSubreddits() []*Subreddit {
+	subs := make([]*Subreddit, 0)
+	for _, acc := range e.Accounts {
+		subs = append(subs, acc.Subreddits...)
 	}
 
-	e.Subreddits = append(e.Subreddits, newSub)
+	return subs
+}
 
-	fmt.Println("Subreddit created: ", name)
+func (e *Engine) ListAccounts() {
+	for _, acc := range e.Accounts {
+		// format nicely
+		fmt.Printf("%s\n", acc.Username)
+	}
 }
