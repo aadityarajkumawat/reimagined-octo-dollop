@@ -92,7 +92,7 @@ func (state *AccountActor) Receive(ctx actor.Context) {
 }
 
 const (
-	MAX_USERS = 3
+	MAX_USERS = 300
 )
 
 func main() {
@@ -104,7 +104,7 @@ func main() {
 	users := 0
 
 	// Create 100 user actors
-	for users < MAX_USERS || true {
+	for users < MAX_USERS {
 		actionType := rand.Intn(2) + 1
 
 		account := &Account{}
