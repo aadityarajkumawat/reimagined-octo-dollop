@@ -52,7 +52,7 @@ func (a *Account) LeaveSubreddit(s *Subreddit) {
 	fmt.Printf("User %s left subreddit %s\n", a.Username, s.Name)
 }
 
-func (a *Account) CreatePost(subreddit *Subreddit, text string) {
+func (a *Account) CreatePost(subreddit *Subreddit, text string) *Post {
 	// check if user is in subreddit
 	for _, sub := range a.Subreddits {
 		if sub.Name == subreddit.Name {
@@ -73,6 +73,8 @@ func (a *Account) CreatePost(subreddit *Subreddit, text string) {
 	subreddit.Posts = append(subreddit.Posts, newPost)
 
 	fmt.Printf("User %s created a post in subreddit %s\n", a.Username, subreddit.Name)
+
+	return newPost
 }
 
 func (a *Account) UpvotePost(post *Post) {

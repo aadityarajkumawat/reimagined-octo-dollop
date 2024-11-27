@@ -92,7 +92,9 @@ func (state *AccountActor) Receive(ctx actor.Context) {
 }
 
 const (
-	MAX_USERS = 300
+	MAX_USERS      = 30000
+	MAX_SUBREDDITS = 1000
+	MIN_POSTS      = 30000
 )
 
 func main() {
@@ -102,9 +104,10 @@ func main() {
 	}
 
 	users := 0
+	posts := 0
 
 	// Create 100 user actors
-	for users < MAX_USERS {
+	for users < MAX_USERS || posts < MIN_POSTS {
 		actionType := rand.Intn(2) + 1
 
 		account := &Account{}
@@ -129,9 +132,18 @@ func main() {
 		pid := system.Root.Spawn(props)
 
 		// Create a random number between 1 and 8
-		actionIndex := rand.Intn(10) + 1
+		actionIndex := rand.Intn(15) + 1
 
-		if actionIndex == 1 {
+		totalSubreddits := len(engine.GetSubreddits())
+		for actionIndex == 3 && totalSubreddits >= MAX_SUBREDDITS {
+			actionIndex = rand.Intn(10) + 1
+		}
+
+		if (users >= MAX_USERS) && (posts < MIN_POSTS) {
+			actionIndex = 4
+		}
+
+		if actionIndex == 1 || actionIndex == 15 {
 			subs := engine.GetSubreddits()
 			if len(subs) != 0 {
 				randomSubreddit := subs[rand.Intn(len(subs))]
@@ -154,10 +166,11 @@ func main() {
 			if len(subs) != 0 {
 				randomSubreddit := subs[rand.Intn(len(subs))]
 				system.Root.Send(pid, &CreatePostMsg{Subreddit: randomSubreddit, Text: "test"})
+				posts++
 			} else {
 				// fmt.Println("No subreddits to leave")
 			}
-		} else if actionIndex == 5 {
+		} else if actionIndex == 5 || actionIndex == 11 || actionIndex == 12 {
 			subs := engine.GetSubreddits()
 			if len(subs) != 0 {
 				randomSubreddit := subs[rand.Intn(len(subs))]
@@ -185,7 +198,7 @@ func main() {
 			} else {
 				// fmt.Println("No subreddits to downvote")
 			}
-		} else if actionIndex == 7 {
+		} else if actionIndex == 7 || actionIndex == 13 || actionIndex == 14 {
 			subs := engine.GetSubreddits()
 			if len(subs) != 0 {
 				randomSubreddit := subs[rand.Intn(len(subs))]
@@ -227,7 +240,51 @@ func main() {
 		}
 
 		system.Root.Send(pid, &GetKarmaMsg{})
-		time.Sleep(50 * time.Millisecond) // Simulate staggered interactions
-
 	}
+
+	time.Sleep(4000 * time.Millisecond) // Simulate staggered interactions
+	seed := time.Now().UnixNano()
+	rnd := rand.New(rand.NewSource(int64(seed)))
+	subs := engine.GetSubreddits()
+	subredditMembers := make(map[string]int)
+
+	getSubredditByName := func(name string) *Subreddit {
+		for _, sub := range subs {
+			if sub.Name == name {
+				return sub
+			}
+		}
+		return nil
+	}
+
+	numberOfSubreddits := len(subs)
+
+	// zipf distribution
+	// Parameters for the Zipf distribution
+	s := 1.07                       // Skewness parameter (must be > 1)
+	v := 1.0                        // Scaling parameter
+	n := uint64(numberOfSubreddits) // Maximum rank (number of subreddits)
+
+	// Create a Zipf generator
+	zipf := rand.NewZipf(rnd, s, v, n)
+
+	for i := 0; i < numberOfSubreddits; i++ {
+		subreddit := subs[i].Name
+		index := zipf.Uint64()
+		subredditMembers[subreddit] = int(index)
+	}
+
+	time.Sleep(2000 * time.Millisecond)
+	println("---------Zipf distribution-----------")
+	for subreddit, members := range subredditMembers {
+		subr := getSubredditByName(subreddit)
+		if subr == nil {
+			fmt.Printf("Subreddit %s not found\n", subreddit)
+			continue
+		}
+		fmt.Printf("%s has %d members and rank %d\n", subreddit, len(subr.Accounts), members)
+	}
+
+	time.Sleep(4000 * time.Millisecond)
+
 }
