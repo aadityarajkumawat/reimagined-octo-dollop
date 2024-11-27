@@ -1,5 +1,10 @@
 ### Report: Analysis of the Code Implementation and Performance
 
+#### **Team Members**
+
+1. Aditya Raj Kumawat (UFID: 71317106)
+2. Pavan Sai Nalluri (UFID: 55592672)
+
 ---
 
 #### **Overview**
